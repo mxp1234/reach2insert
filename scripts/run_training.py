@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
 """
-DP-SERL Curriculum Training Main Script.
-
-Modular implementation with:
-- Demo data processing and tactile baseline extraction
-- Grouped replay buffers with K-Means clustering
-- Offline/Online sampling with annealing
-- Critic TD warmup pretraining
-- SpaceMouse intervention support
-- Comprehensive metrics logging
-
 Usage:
     # Learner
     export XLA_PYTHON_CLIENT_PREALLOCATE=false

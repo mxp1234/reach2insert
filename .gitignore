@@ -104,3 +104,31 @@ Thumbs.db
 *.h5
 *.hdf5
 *.zarr/
+
+# ============================================
+# 旧版本脚本 (根目录下，已迁移到 scripts/)
+# ============================================
+/run_*.py
+/train_*.py
+/record_*.py
+/test_*.py
+/visualize_recording.py
+/run_inference.py
+/run_two_stage.py
+
+# 旧脚本和配置
+/run.sh
+/setup_env.sh
+/environment.yaml
+/dp_failure_positions.json
+
+# 旧目录
+/models/
+/utils/
+/experiments/
+/demo_visualizations/
+
+# 中文文档 (本地保留)
+/*.md
+!/README.md
+

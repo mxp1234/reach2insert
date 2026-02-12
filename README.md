@@ -116,14 +116,16 @@ see_to_reach_feel_to_insert/
 
 ```bash
 conda activate tac-insert
-python scripts/run_training.py --checkpoint_path task/your_task/checkpoints
-```
 
-### Inference
+# Learner (on GPU machine)
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
+export XLA_PYTHON_CLIENT_MEM_FRACTION=.2
+python -m scripts.run_training --learner
 
-```bash
-conda activate tac-insert
-./run.sh
+# Actor (on robot machine)
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
+export XLA_PYTHON_CLIENT_MEM_FRACTION=.2
+python -m scripts.run_training --actor --ip=<learner_ip>
 ```
 
 ## Hardware
