@@ -1,11 +1,7 @@
 """
-触觉传感器集成模块 - PaXini PX-6AX GEN3 MC-M2020-Elite
+PaXini PX-6AX GEN3 MC-M2020-Elite
 用于在数据采集时同步读取触觉 6 维力/力矩信息
 
-基于官方通信协议文档 V1.0.5
-- UART: 921600 baud, 8N1
-- 功能码: 0x7B (读取应用区), 0x79 (写入配置区)
-- 地址: 1008-1010 (合力), 1038+ (分布力阵列)
 """
 
 import serial
@@ -15,21 +11,16 @@ import numpy as np
 from typing import Optional, Tuple
 import glob
 
-
-# 触觉传感器配置 - MC-M2020-Elite
 PORT = '/dev/ttyACM0'
 BAUD_RATE = 921600
-DEV_ADDR = 0x01  # 设备地址 (模块号+1)
+DEV_ADDR = 0x01 
 
-# 寄存器地址 (官方文档 Section 5.6.2)
-ADDR_FORCE_SUM = 1008      # 合力 Fx, Fy, Fz (3字节)
-ADDR_FORCE_ARRAY = 1038    # 分布力阵列起始地址
+ADDR_FORCE_SUM = 1008     
+ADDR_FORCE_ARRAY = 1038 
 
-# MC-M2020-Elite 规格
-TAXEL_COUNT = 9            # 测点数量
+TAXEL_COUNT = 9           
 SCALE_FACTOR = 0.1         # 标定系数: 1 LSB = 0.1N
 
-# 测点位置 (3x3 网格，单位: mm)
 SENSOR_SPACING = 10.0
 TAXEL_POSITIONS = [
     (-SENSOR_SPACING, -SENSOR_SPACING, 0),  # Taxel 1
@@ -289,8 +280,6 @@ class TactileSensor:
         self.ser.write(frame)
         time.sleep(0.02)  # 等待传感器响应
 
-        # 计算期望的响应长度
-        # 响应格式: AA 55 [len:2] [dev:1] [rsv:1] [func:1] [addr:4] [datalen:2] [status:1] [data:N] [LRC:1]
         expected_len = 2 + 2 + 1 + 1 + 1 + 4 + 2 + 1 + length + 1  # = 15 + length
         response = self.ser.read(expected_len + 10)  # 多读一些以确保完整
 
@@ -304,12 +293,12 @@ class TactileSensor:
 
     def _parse_raw_forces(self, response: bytes):
         """解析原始力数据"""
-        # 数据从字节 14 开始 (status 之后)
+     
         raw_payload = response[14:14 + TAXEL_COUNT * 3]
         forces = []
 
         for i in range(TAXEL_COUNT):
-            # Fx, Fy: 有符号 (-128~+127), Fz: 无符号 (0~255)
+
             fx_raw = struct.unpack('b', bytes([raw_payload[i*3]]))[0]
             fy_raw = struct.unpack('b', bytes([raw_payload[i*3 + 1]]))[0]
             fz_raw = struct.unpack('B', bytes([raw_payload[i*3 + 2]]))[0]
@@ -346,7 +335,6 @@ class TactileSensor:
         return force, torque
 
 
-# 便捷函数：用于快速创建和连接传感器
 def create_tactile_sensor(port: str = PORT, scale_factor: float = 0.1,
                           auto_connect: bool = True) -> Optional[TactileSensor]:
     """

@@ -1,0 +1,22 @@
+{
+  "camera_name": "side",
+  "crop_region": {
+    "y1": 391,
+    "y2": 485,
+    "x1": 482,
+    "x2": 573,
+    "crop_string": "391:485,482:573"
+  },
+  "image_shape": {
+    "height": 720,
+    "width": 1280
+  },
+  "crop_size": {
+    "height": 94,
+    "width": 91
+  },
+  "timestamp": "2026-02-04T16:44:18.488568",
+  "notes": "s",
+  "reference_image": "side_reference.png",
+  "cropped_reference": "side_cropped_reference.png"
+}
