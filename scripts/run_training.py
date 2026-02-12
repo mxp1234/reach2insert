@@ -39,9 +39,11 @@ from absl import app, flags
 # Path setup
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_DIR)
-sys.path.insert(0, "/home/pi-zero/Documents/hil-serl/serl_robot_infra")
-sys.path.insert(0, "/home/pi-zero/Documents/hil-serl/serl_launcher")
-sys.path.insert(0, "/home/pi-zero/Documents/hil-serl/examples")
+sys.path.insert(0, os.path.join(PROJECT_DIR, "serl_robot_infra"))
+sys.path.insert(0, os.path.join(PROJECT_DIR, "serl_launcher"))
+# sys.path.insert(0, "/home/pi-zero/Documents/hil-serl/serl_robot_infra")
+# sys.path.insert(0, "/home/pi-zero/Documents/hil-serl/serl_launcher")
+# sys.path.insert(0, "/home/pi-zero/Documents/hil-serl/examples")
 
 import jax
 import jax.numpy as jnp

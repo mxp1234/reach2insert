@@ -1,180 +1,141 @@
 # See to Reach, Feel to Insert
 
-两阶段 Peg-in-Hole 任务：结合 Diffusion Policy (视觉接近) 和 HIL-SERL (触觉插入)
+Two-stage Peg-in-Hole: IL (visual approach) + RL (tactile insertion)
 
-## 系统架构
+## Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                     Two-Stage Peg-in-Hole Pipeline                  │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌─────────────────────────────┐      ┌─────────────────────────┐  │
-│  │     Stage 1: DP (Approach)  │      │  Stage 2: SERL (Insert) │  │
-│  │                             │      │                         │  │
-│  │  Diffusion Policy           │  →   │  HIL-SERL               │  │
-│  │  视觉引导接近孔             │      │  触觉反馈精细插入       │  │
-│  │                             │      │                         │  │
-│  │  输入: 3 cameras (240x320)  │      │  输入: 4 cameras (128)  │  │
-│  │  框架: PyTorch              │      │  框架: JAX              │  │
-│  └─────────────────────────────┘      └─────────────────────────┘  │
-│                                                                     │
-│  切换条件: 当末端进入 SERL 探索空间时自动切换                       │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+Stage 1: Imitation Learning        Stage 2: Reinforcement Learning
+┌─────────────────────────┐       ┌─────────────────────────┐
+│  Visual-guided approach │   →   │  Tactile-guided insert  │
+│  PyTorch, 3 cameras     │       │  JAX, 4 cameras+tactile │
+└─────────────────────────┘       └─────────────────────────┘
 ```
 
-## 环境设置
+## Installation
 
-### 方式 1: 使用设置脚本 (推荐)
+### 1. Clone repository
 
 ```bash
-cd /home/pi-zero/Documents/see_to_reach_feel_to_insert
-
-# 创建统一 conda 环境 (dp-serl)
-./setup_env.sh
-
-# 激活环境
-conda activate dp-serl
+git clone https://github.com/mxp1234/see_to_reach_feel_to_insert.git
+cd see_to_reach_feel_to_insert
 ```
 
-### 方式 2: 手动安装
+### 2. Setup external dependency (diffusion_policy)
+
+**Option A: Git Submodule (recommended)**
 
 ```bash
-# 创建环境
-conda create -n dp-serl python=3.11 -y
-conda activate dp-serl
+git submodule add https://github.com/real-stanford/diffusion_policy.git external/diffusion_policy
+git submodule update --init --recursive
 
-# 安装 PyTorch (CUDA 12)
+export DIFFUSION_POLICY_PATH=$(pwd)/external/diffusion_policy
+```
+
+**Option B: Manual clone**
+
+```bash
+cd ..
+git clone https://github.com/real-stanford/diffusion_policy.git
+cd see_to_reach_feel_to_insert
+
+# Or set custom path
+export DIFFUSION_POLICY_PATH=/your/path/to/diffusion_policy
+```
+
+### 3. Create conda environment
+
+```bash
+conda create -n tac-insert python=3.11 -y
+conda activate tac-insert
+
+# PyTorch (CUDA 12)
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 
-# 安装 JAX (CUDA 12)
+# JAX (CUDA 12)
 pip install "jax[cuda12]"
 
-# 安装其他依赖
+# Other dependencies
 pip install -r requirements.txt
 
-# 安装本地包
-pip install -e /home/pi-zero/Documents/Touch-Diffusion
-pip install -e /home/pi-zero/Documents/hil-serl/serl_launcher
-pip install -e /home/pi-zero/Documents/hil-serl/serl_robot_infra/franka_env
+# Install local packages
+pip install -e serl_launcher
+pip install -e serl_robot_infra/franka_env
 ```
 
-### 验证安装
+### 4. Verify installation
 
 ```bash
-# 验证 PyTorch
+conda activate tac-insert
+
 python -c "import torch; print(f'PyTorch: {torch.__version__}, CUDA: {torch.cuda.is_available()}')"
-
-# 验证 JAX
 python -c "import jax; print(f'JAX: {jax.__version__}')"
-
-# 验证 diffusion_policy
-python -c "import diffusion_policy; print('diffusion_policy OK')"
-
-# 验证 serl_launcher
 python -c "import serl_launcher; print('serl_launcher OK')"
 ```
 
-## 目录结构
+## Project Structure
 
 ```
 see_to_reach_feel_to_insert/
-├── configs/
-│   └── config.py           # 配置文件 (暂未使用)
-├── models/
-│   ├── dp_inference.py     # DP 推理 (暂未使用)
-│   └── serl_inference.py   # SERL 推理 (暂未使用)
-├── utils/
-│   └── sensors.py          # 相机、机器人接口 (暂未使用)
-├── run_two_stage.py        # 主程序 (核心!)
-├── run.sh                  # 启动脚本
-├── setup_env.sh            # 环境设置脚本
-├── environment.yaml        # Conda 环境配置
-├── requirements.txt        # Pip 依赖
-├── setup.py                # 包安装配置
-└── README.md               # 本文件
+├── scripts/                    # Training and utilities
+│   ├── config.py               # Training configuration
+│   ├── run_training.py         # Main training script
+│   ├── demo_processor.py       # Demo data processing
+│   ├── grouped_buffer.py       # Replay buffer with grouping
+│   ├── grouped_sampler.py      # Grouped data sampling
+│   ├── preprocess_demo.py      # Demo preprocessing
+│   ├── pretrainer.py           # Pretraining utilities
+│   ├── visualize_*.py          # Visualization tools
+│   └── utils/                  # Utility modules
+│       ├── camera_crop.py      # Camera cropping tool
+│       ├── camera_utils.py     # Camera utilities
+│       ├── dp_inference.py     # IL policy inference
+│       ├── robot_utils.py      # Robot control utilities
+│       ├── tactile_sensor.py   # Tactile sensor interface
+│       ├── tactile_utils.py    # Tactile processing
+│       └── spacemouse/         # SpaceMouse teleoperation
+├── serl_launcher/              # RL training framework
+├── serl_robot_infra/           # Robot infrastructure
+├── configs/                    # Configuration files
+├── task/                       # Task definitions
+└── external/                   # External dependencies (submodules)
+    └── diffusion_policy/       # IL policy (submodule)
 ```
 
-## 模型路径
+## Dependencies
 
-- DP: `/home/pi-zero/Documents/diffusion_policy/data/outputs/2025.12.28/15.38.20_train_diffusion_unet_image_peg_in_hole_real/checkpoints/epoch=0400-train_loss=0.007.ckpt`
-- SERL: `/home/pi-zero/Documents/hil-serl/examples/experiments/peg_in_hole_tactile/checkpoints/checkpoint_400`
+| Repository | Source | Description |
+|------------|--------|-------------|
+| diffusion_policy | [real-stanford/diffusion_policy](https://github.com/real-stanford/diffusion_policy) | IL policy (submodule) |
+| serl_launcher | Included | RL training framework |
+| serl_robot_infra | Included | Robot interface |
 
-## 使用方法
+## Usage
 
-### 运行推理
+### Training
 
 ```bash
-conda activate dp-serl
+conda activate tac-insert
+python scripts/run_training.py --checkpoint_path task/your_task/checkpoints
+```
 
-# 两阶段推理 (自动切换)
+### Inference
+
+```bash
+conda activate tac-insert
 ./run.sh
-
-# 仅运行 DP 阶段
-./run.sh --dp_only
-
-# 仅运行 SERL 阶段
-./run.sh --serl_only
 ```
 
-### 控制按键
+## Hardware
 
-| 按键 | 功能 |
-|------|------|
-| SPACE | 强制从 DP 切换到 SERL |
-| s | 标记任务成功 |
-| r | 重置 episode |
-| ESC | 退出 |
+### Cameras
 
-## 配置说明
+| Name | Serial | Resolution |
+|------|--------|------------|
+| top/side | 334622072595 | 640x480 / 1280x720 |
+| wrist_1 | 126122270333 | 1280x720 |
+| wrist_2 | 315122270814 | 1280x720 |
 
-### DP 配置
+## License
 
-| 参数 | 值 | 说明 |
-|------|-----|------|
-| 相机 | top, wrist_1, wrist_2 | 3 个视角 |
-| 图像尺寸 | 240×320 | resize + JPEG |
-| 观测键 | top_image, wrist_1_image, wrist_2_image | |
-| action_scale | 3.2 | 动作缩放 |
-
-### SERL 配置
-
-| 参数 | 值 | 说明 |
-|------|-----|------|
-| 相机 | wrist_1, wrist_2, side, top_crop | 4 个视角 |
-| 图像尺寸 | 128×128 | resize |
-| 图像裁剪 | 见 config.py | 训练时裁剪 |
-| state | 19 维 | gripper+pose+vel+force+torque |
-
-### 自动切换条件
-
-当末端位置进入 SERL 探索空间时自动切换:
-
-```python
-SERL_SPACE_LOW = [0.522, -0.046, 0.042]
-SERL_SPACE_HIGH = [0.542, -0.038, 0.092]
-```
-
-## 相机序列号
-
-| 相机名 | 序列号 | 用途 |
-|--------|--------|------|
-| top/side | 334622072595 | 全局相机 |
-| wrist_1 | 126122270333 | 腕部相机1 |
-| wrist_2 | 315122270814 | 腕部相机2 |
-
-## 依赖项目
-
-- Touch-Diffusion: `/home/pi-zero/Documents/Touch-Diffusion`
-- HIL-SERL: `/home/pi-zero/Documents/hil-serl`
-- Diffusion Policy: `/home/pi-zero/Documents/diffusion_policy`
-
-## TODO
-
-- [ ] 添加 DP 训练流程
-- [ ] 添加 SERL 训练流程
-- [ ] 训练视觉成功分类器替代人工判断
-- [ ] 添加触觉传感器支持
-- [ ] 添加自动重试机制
-- [ ] 添加数据记录和可视化
+MIT
