@@ -2,15 +2,6 @@
 
 Two-stage Peg-in-Hole: IL (visual approach) + RL (tactile insertion)
 
-## Overview
-
-```
-Stage 1: Imitation Learning        Stage 2: Reinforcement Learning
-┌─────────────────────────┐       ┌─────────────────────────┐
-│  Visual-guided approach │   →   │  Tactile-guided insert  │
-│  PyTorch, 3 cameras     │       │  JAX, 4 cameras+tactile │
-└─────────────────────────┘       └─────────────────────────┘
-```
 
 ## Installation
 
@@ -72,43 +63,6 @@ python -c "import torch; print(f'PyTorch: {torch.__version__}, CUDA: {torch.cuda
 python -c "import jax; print(f'JAX: {jax.__version__}')"
 python -c "import serl_launcher; print('serl_launcher OK')"
 ```
-
-## Project Structure
-
-```
-see_to_reach_feel_to_insert/
-├── scripts/                    # Training and utilities
-│   ├── config.py               # Training configuration
-│   ├── run_training.py         # Main training script
-│   ├── demo_processor.py       # Demo data processing
-│   ├── grouped_buffer.py       # Replay buffer with grouping
-│   ├── grouped_sampler.py      # Grouped data sampling
-│   ├── preprocess_demo.py      # Demo preprocessing
-│   ├── pretrainer.py           # Pretraining utilities
-│   ├── visualize_*.py          # Visualization tools
-│   └── utils/                  # Utility modules
-│       ├── camera_crop.py      # Camera cropping tool
-│       ├── camera_utils.py     # Camera utilities
-│       ├── dp_inference.py     # IL policy inference
-│       ├── robot_utils.py      # Robot control utilities
-│       ├── tactile_sensor.py   # Tactile sensor interface
-│       ├── tactile_utils.py    # Tactile processing
-│       └── spacemouse/         # SpaceMouse teleoperation
-├── serl_launcher/              # RL training framework
-├── serl_robot_infra/           # Robot infrastructure
-├── configs/                    # Configuration files
-├── task/                       # Task definitions
-└── external/                   # External dependencies (submodules)
-    └── diffusion_policy/       # IL policy (submodule)
-```
-
-## Dependencies
-
-| Repository | Source | Description |
-|------------|--------|-------------|
-| diffusion_policy | [real-stanford/diffusion_policy](https://github.com/real-stanford/diffusion_policy) | IL policy (submodule) |
-| serl_launcher | Included | RL training framework |
-| serl_robot_infra | Included | Robot interface |
 
 ## Usage
 
