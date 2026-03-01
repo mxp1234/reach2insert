@@ -27,7 +27,7 @@ class TrainingConfig:
     # ==========================================================================
     # Demo Data Processing
     # ==========================================================================
-    demo_data_path: str = "/home/pi-zero/Documents/openpi/third_party/real_franka/data/peg_in_hole_tactile/peg_in_hole_rectangle_0-0_225"
+    demo_data_path: str = ""  # Path to demo data directory
 
     # Tactile baseline extraction: average over this step range
     baseline_step_start: int = 60
@@ -178,9 +178,8 @@ class CurriculumConfig:
     # ==========================================================================
     # Model Paths
     # ==========================================================================
-    # dp_checkpoint: str = "/home/pi-zero/Documents/diffusion_policy/data/outputs/2026.01.15/checkpoints/latest.ckpt"
-    dp_checkpoint: str = "/home/pi-zero/Documents/diffusion_policy/data/outputs/2026.02.03/20.09.13_train_diffusion_unet_image_peg_in_hole_0.1mm_rectangle_225/checkpoints/epoch=0200-train_loss=0.028.ckpt"
-    serl_checkpoint_path: str = "/home/pi-zero/Documents/see_to_reach_feel_to_insert/task/peg_in_hole_square_II/checkpoints_1"
+    dp_checkpoint: str = ""  # Path to Diffusion Policy checkpoint
+    serl_checkpoint_path: str = ""  # Path to SERL checkpoint
 
     # ==========================================================================
     # Robot Configuration
@@ -262,7 +261,7 @@ class CurriculumConfig:
     # Tactile Sensor Configuration
     # ==========================================================================
     tactile_enabled: bool = True
-    tactile_port: str = "/dev/ttyACM0"  # 自动检测: 设为 None
+    tactile_port: str = "/dev/ttyACM0"  # Set to None for auto-detection
     tactile_scale_factor: float = 0.1
     tactile_baseline_delay: float = 10.0  # seconds after gripper close
 

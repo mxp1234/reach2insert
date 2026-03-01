@@ -1,9 +1,9 @@
 """
-See to Reach, Feel to Insert - 配置文件
+See to Reach, Feel to Insert - Configuration
 
-两阶段 Peg-in-Hole 任务配置:
-- Stage 1 (DP): Diffusion Policy 接近孔
-- Stage 2 (SERL): HIL-SERL 精细插入
+Two-stage Peg-in-Hole task config:
+- Stage 1 (DP): Diffusion Policy for approach
+- Stage 2 (SERL): HIL-SERL for insertion
 """
 
 import numpy as np
@@ -13,14 +13,14 @@ from typing import Dict, List, Optional, Tuple
 
 @dataclass
 class RobotConfig:
-    """机器人配置"""
+    """Robot config"""
     server_url: str = "http://172.16.0.1:5000"
     control_frequency: float = 10.0  # Hz
 
 
 @dataclass
 class CameraConfig:
-    """相机配置"""
+    """Camera config"""
     serials: Dict[str, str] = field(default_factory=lambda: {
         "side_policy": "234322302257",
         "wrist_1": "128422272758",
@@ -37,15 +37,15 @@ class CameraConfig:
 
 @dataclass
 class DPConfig:
-    """Diffusion Policy 配置"""
-    checkpoint_path: str = "/home/pi-zero/Documents/Touch-Diffusion/latest.ckpt"
+    """Diffusion Policy config"""
+    checkpoint_path: str = ""  # Path to DP checkpoint
     action_scale: float = 3.2
     frequency: float = 10.0  # Hz
     steps_per_inference: int = 8
     n_inference_steps: int = 16
-    max_duration: float = 30.0  # 最大执行时间 (秒)
+    max_duration: float = 30.0  # seconds
 
-    # 图像 keys (根据训练时的配置)
+    # Image keys
     image_keys: List[str] = field(default_factory=lambda: [
         "side_policy_image",
         "wrist_1_image",
@@ -55,20 +55,20 @@ class DPConfig:
 
 @dataclass
 class SERLConfig:
-    """HIL-SERL 配置"""
-    checkpoint_path: str = "/home/pi-zero/Documents/hil-serl/examples/experiments/peg_in_hole_tactile/checkpoints"
+    """HIL-SERL config"""
+    checkpoint_path: str = ""  # Path to SERL checkpoint
     action_scale: np.ndarray = field(default_factory=lambda: np.array([0.05, 0.0, 1]))
     frequency: float = 10.0  # Hz
-    max_duration: float = 30.0  # 最大执行时间 (秒)
+    max_duration: float = 30.0  # seconds
 
-    # 图像 keys (与训练时一致)
+    # Image keys
     image_keys: List[str] = field(default_factory=lambda: [
         "side_policy",
         "wrist_1",
         "wrist_2",
     ])
 
-    # 状态 keys
+    # State keys
     proprio_keys: List[str] = field(default_factory=lambda: [
         "tcp_pose",
         "tcp_vel",
@@ -80,35 +80,33 @@ class SERLConfig:
 
 @dataclass
 class SwitchConfig:
-    """阶段切换配置"""
-    # 切换条件: 当末端位置进入该区域时自动切换
-    # 或手动按空格键切换
-    auto_switch: bool = False  # 是否自动切换
+    """Stage switching config"""
+    auto_switch: bool = False
 
-    # 自动切换的目标区域 (SERL reset 区域)
+    # Auto-switch target region
     switch_region_center: np.ndarray = field(
         default_factory=lambda: np.array([0.532, -0.042, 0.092])
     )
-    switch_region_radius: float = 0.02  # 米
+    switch_region_radius: float = 0.02  # meters
 
-    # 高度阈值: 当 z < threshold 时认为接近孔
-    switch_height_threshold: float = 0.10  # 米
+    # Height threshold for switching
+    switch_height_threshold: float = 0.10  # meters
 
 
 @dataclass
 class TaskConfig:
-    """任务总配置"""
-    # 复位位置 (DP 开始位置)
+    """Task config"""
+    # Reset pose (DP start position)
     reset_pose: np.ndarray = field(
         default_factory=lambda: np.array([0.5487940303574742, -0.12, 0.25483485040151812, np.pi, 0.0, 0.0])
     )
 
-    # 目标位置 (插入完成位置)
+    # Target pose (insertion complete)
     target_pose: np.ndarray = field(
         default_factory=lambda: np.array([0.532, -0.042, 0.044, np.pi, 0, 0])
     )
 
-    # 固定姿态 [roll, pitch, yaw]
+    # Fixed orientation [roll, pitch, yaw]
     fixed_orientation: np.ndarray = field(
         default_factory=lambda: np.array([np.pi, 0, 0])
     )
@@ -116,7 +114,7 @@ class TaskConfig:
 
 @dataclass
 class Config:
-    """主配置"""
+    """Main config"""
     robot: RobotConfig = field(default_factory=RobotConfig)
     camera: CameraConfig = field(default_factory=CameraConfig)
     dp: DPConfig = field(default_factory=DPConfig)
@@ -124,15 +122,15 @@ class Config:
     switch: SwitchConfig = field(default_factory=SwitchConfig)
     task: TaskConfig = field(default_factory=TaskConfig)
 
-    # 触觉传感器
+    # Tactile sensor
     tactile_port: str = "/dev/ttyACM0"
     use_tactile: bool = False
 
-    # 日志
+    # Logging
     save_logs: bool = True
     log_dir: str = "./logs"
 
 
 def get_config() -> Config:
-    """获取默认配置"""
+    """Get default config"""
     return Config()

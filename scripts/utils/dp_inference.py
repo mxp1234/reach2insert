@@ -10,7 +10,6 @@ from collections import deque
 from typing import Optional, Dict, Any
 
 # Add diffusion policy to path
-# sys.path.insert(0, "/home/pi-zero/Documents/diffusion_policy")
 import os
 _PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _DIFFUSION_POLICY_PATH = os.environ.get(
